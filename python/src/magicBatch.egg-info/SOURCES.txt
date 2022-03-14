@@ -1,0 +1,16 @@
+.DS_Store
+LICENSE.txt
+MANIFEST
+README.txt
+setup.cfg
+setup.py
+src/.DS_Store
+src/magicBatch/.DS_Store
+src/magicBatch/MAGIC.py
+src/magicBatch/MAGIC_core.py
+src/magicBatch/__init__.py
+src/magicBatch.egg-info/PKG-INFO
+src/magicBatch.egg-info/SOURCES.txt
+src/magicBatch.egg-info/dependency_links.txt
+src/magicBatch.egg-info/requires.txt
+src/magicBatch.egg-info/top_level.txt
