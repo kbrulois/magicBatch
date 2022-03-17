@@ -6,7 +6,7 @@ from distutils.core import setup
 
 
 setup(name='magicBatch',
-      version='1.0.3',
+      version='1.0.4',
       description='MAGICbatch',
       author='Kevin Brulois',
       author_email='kevin.brulois@gmail.com',

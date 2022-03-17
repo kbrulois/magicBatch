@@ -4,7 +4,7 @@
 #' Impute data using the MAGIC algorithm
 #' 
 #' This is an implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm described in 
-#' Van Dijk, David et al, modified for speed and flexibility. If the mar_mat_input argument is used, the diffusion operator is computed independently of the data to be imputed. 
+#' Van Dijk, David et al, modified for flexibility. It includes the mar_mat_input argument, which allows the data used to compute the diffusion operator and the data to be imputed to be specified independently. 
 #' This allows any low-dimensional representation of the data, including batch-corrected data, to be directly used to calculate the powered Marcov 
 #' affinity matrix. 
 #' 
@@ -25,7 +25,7 @@
 #' \describe{
 #'   \item{imputed_data}{A cell by gene \code{matrix} of the imputed gene expression values.}
 #'   \item{diffusion_map}{A cell by diffusion map component \code{matrix}.}
-#'   \item{marcov_matrix}{A cell by cell \code{matrix} of the unpowered markov affinity matrix.}
+#'   \item{marcov_matrix}{A cell by cell \code{matrix} of the markov affinity matrix.}
 #' }
 #'
 #' @author Kevin Brulois
@@ -35,7 +35,6 @@ magicBatch <- function(data,
                        select_features = NULL,
                        mar_mat_input = NULL,
                        import_mar_mat = FALSE,
-                       use_numpy = TRUE,
                        pca = 20,
                        t_param = c(2,4,6),
                        n_diffusion_components = 0,
@@ -81,29 +80,27 @@ magicBatch <- function(data,
   message("exporting data to python")
   
   path2MagScript <- system.file("exec", "MAGIC.py", package="magicBatch")
-  
+
   path2Mar_matOut <- tempfile("mar_mat", fileext = ".csv")
   to.remove <-path2Mar_matOut
   
   path2Dif_mapOut <- tempfile("dif_map", fileext = ".csv")
-  if(n_diffusion_components != 0) {
-    to.remove <- c(to.remove, path2Dif_mapOut)
-  }
+  if(n_diffusion_components != 0) to.remove <- c(to.remove, path2Dif_mapOut)
   
   path2Data_Out <- tempfile("dat_mat", fileext = ".csv")
-  if(use_numpy) {
-    to.remove <- c(to.remove, path2Data_Out)
-  }
-  
+  to.remove <- c(to.remove, path2Data_Out)
+
   magParams <- paste("-o1", path2Mar_matOut,
                      "-o2", path2Dif_mapOut,
                      "-o3", path2Data_Out,
+                     "-t", paste(t_param, collapse = "_"),
                      "-c", n_diffusion_components,
                      "-p", pca,
                      "-k", k,
                      "-ka", ka,
                      "-e", epsilon,
-                     "-r", rescale_percent)
+                     "-r", rescale_percent,
+                     "-rm", rescale_method)
   
   if(!is.null(mar_mat_input)) {
     assertthat::are_equal(nrow(data), nrow(mar_mat_input))
@@ -112,7 +109,7 @@ magicBatch <- function(data,
     magParams <- paste(magParams, "-m", path2Aff_matIn)
     to.remove <- c(to.remove, path2Aff_matIn)
   }
-  if((is.null(mar_mat_input) | use_numpy) & is.null(select_features)) {
+  if(is.null(select_features)) {
     path2DataIn <- tempfile("dat_mat_in", fileext = ".csv")
     data.table::fwrite(as.data.frame(data), file = path2DataIn, row.names = FALSE)
     magParams <- paste(magParams, "-d", path2DataIn)
@@ -123,9 +120,6 @@ magicBatch <- function(data,
     data.table::fwrite(as.data.frame(rbind(fzJKy2SHmdwIPQ = inds, data)), file = path2DataIn, row.names = TRUE)
     magParams <- paste(magParams, "-d", path2DataIn)
     to.remove <- c(to.remove, path2DataIn)
-  }
-  if(use_numpy) {
-    magParams <- paste(magParams, "-t", paste(t_param, collapse = "_"))
   }
   
   message("computing Marcov matrix")
@@ -145,27 +139,17 @@ magicBatch <- function(data,
     diffusion_map <- NULL
   }
   
-  if(use_numpy) {
-    message("importing imputed data from python to R")
-    imputed_data <- as.matrix(data.table::fread(path2Data_Out, header = TRUE))
-    cols <- ncol(imputed_data) / length(t_param)
-    imputed_data <- Map(function(x) {
+  message("importing imputed data from python to R")
+  imputed_data <- as.matrix(data.table::fread(path2Data_Out, header = TRUE))
+  cols <- ncol(imputed_data) / length(t_param)
+  imputed_data <- Map(function(x) {
       temp <- imputed_data[,1:cols + cols * (x - 1)]
       dimnames(temp) <- dimnames(data)
       temp
-    }, seq_along(t_param))
-    names(imputed_data) <- paste0("t", t_param)
-  } else {
-    message("imputing data")
-    data <- as(as.matrix(data), "dgCMatrix")
-    imputed_data <- multi_t_fast_impute(data, L, t_param)
-  }
-  if(rescale_percent != 0 & rescale_method %in% c("classic", "adaptive")) {
-    imputed_data <- lapply(imputed_data, function(x) rescale_data(data = data, 
-                                                                  imputed_data = x, 
-                                                                  rescale_percent = rescale_percent, 
-                                                                  rescale_method = rescale_method))
-  }
+  }, seq_along(t_param))
+  
+  names(imputed_data) <- paste0("t", t_param)
+  
   return(list(imputed_data = imputed_data,
               marcov_mat = L,
               diffusion_map = diffusion_map))

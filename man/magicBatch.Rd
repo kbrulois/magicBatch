@@ -9,7 +9,6 @@ magicBatch(
   select_features = NULL,
   mar_mat_input = NULL,
   import_mar_mat = FALSE,
-  use_numpy = TRUE,
   pca = 20,
   t_param = c(2, 4, 6),
   n_diffusion_components = 0,
@@ -53,12 +52,12 @@ A \code{list} that includes the following elements:
 \describe{
   \item{imputed_data}{A cell by gene \code{matrix} of the imputed gene expression values.}
   \item{diffusion_map}{A cell by diffusion map component \code{matrix}.}
-  \item{marcov_matrix}{A cell by cell \code{matrix} of the unpowered markov affinity matrix.}
+  \item{marcov_matrix}{A cell by cell \code{matrix} of the markov affinity matrix.}
 }
 }
 \description{
 This is an implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm described in 
-Van Dijk, David et al, modified for speed and flexibility. If the mar_mat_input argument is used, the diffusion operator is computed independently of the data to be imputed. 
+Van Dijk, David et al, modified for flexibility. It includes the mar_mat_input argument, which allows the data used to compute the diffusion operator and the data to be imputed to be specified independently. 
 This allows any low-dimensional representation of the data, including batch-corrected data, to be directly used to calculate the powered Marcov 
 affinity matrix.
 }

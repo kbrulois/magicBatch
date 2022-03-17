@@ -22,7 +22,7 @@ def parse_args(args):
 	a.add_argument('-d', '--data', metavar='D',
 					help='File path of input data csv file (rows represent cells, columns represent features).')
 	a.add_argument('-m', '--mar_mat_in', metavar='M', 
-					help='File path of input data csv file (rows represent cells, columns represent) to be used directly in Marcov matrix calculation.')
+					help='File path of input data csv file (rows represent cells, columns represent features) to be used directly in Marcov matrix calculation.')
 	a.add_argument('-o1', '--mar_mat_out', metavar='O1',
 				   help='File path of where to save the Marcov matrix in sparse coo format (in csv format).')
 	a.add_argument('-o2', '--dif_map_out', metavar='O2',
@@ -45,6 +45,8 @@ def parse_args(args):
 					help='Epsilon parameter for running MAGIC (Default = 1).')
 	m.add_argument('-r', '--rescale', metavar='R', type=float, default=0,
 					help='Percentile to rescale data to after running MAGIC (Default = 99).')
+	m.add_argument('-rm', '--rescale_method', metavar='RM', default='classic',
+					help='Method to use for rescaling data after running MAGIC (Default = classic).')
 
 	w = p.add_argument_group('Diffusion Map parameters')
 	w.add_argument('-c', '--n_diffusion_components', metavar='C', default=10, type=int,
@@ -60,7 +62,7 @@ def main(args: list = None):
 	args = parse_args(args)
 	print(args)
 	try:
-		magicBatch.MAGIC_core.magicBatch(data=args.data, mar_mat_input=args.mar_mat_in, n_pca_components=args.pca_components, random_pca=args.pca_non_random, t=args.t, k=args.k, ka=args.ka, epsilon=args.epsilon, n_diffusion_components=args.n_diffusion_components, rescale_percent = args.rescale, csv_l=args.mar_mat_out, csv_d=args.dif_map_out, csv_i=args.data_out)
+		magicBatch.MAGIC_core.magicBatch(data=args.data, mar_mat_input=args.mar_mat_in, n_pca_components=args.pca_components, random_pca=args.pca_non_random, t=args.t, k=args.k, ka=args.ka, epsilon=args.epsilon, n_diffusion_components=args.n_diffusion_components, rescale_percent = args.rescale, rescale_method = args.rescale_method, csv_l=args.mar_mat_out, csv_d=args.dif_map_out, csv_i=args.data_out)
 
 	except:
 		raise

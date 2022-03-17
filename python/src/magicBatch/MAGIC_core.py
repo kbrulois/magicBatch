@@ -61,8 +61,6 @@ def magicBatch(data=None, mar_mat_input=None, n_pca_components=20, n_diffusion_c
     if csv_i != None:
         data_new = dt.Frame(np.hstack(data_new))
         data_new.to_csv(csv_i)
-    else:
-        return(data_new)
 
 def run_pca(data, n_components=100, random=True):
 
@@ -142,6 +140,7 @@ def rescale_data(data, imputed_data, rescale_percent, rescale_method):
     num_rows = data.shape[0]
     num_cols = data.shape[1]
     if rescale_method == "classic":
+        print('using classic method')
         M99 = np.percentile(data, rescale_percent, axis=0)
         M100 = data.max(axis=0)
         indices = np.where(M99 == 0)[0]
@@ -151,10 +150,11 @@ def rescale_data(data, imputed_data, rescale_percent, rescale_method):
         indices = np.where(M99_new == 0)[0]
         M99_new[indices] = M100_new[indices]
     if rescale_method == "adaptive":
+        print('using adaptive method')
         nz = np.count_nonzero(data, 0) / num_rows
         z = 1 - nz
         rescale_percent_adj = rescale_percent * nz + z
-        M99 = np.asarray([np.quantile(data[:,i], rescale_percent_adj[i], axis=0) for i in range(num_cols)])
+        M99 = np.asarray([np.quantile(data.iloc[:,i], rescale_percent_adj[i], axis=0) for i in range(num_cols)])
         M100 = data.max(axis=0)
         indices = np.where(M99 == 0)[0]
         M99[indices] = M100[indices]
