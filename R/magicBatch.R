@@ -1,6 +1,7 @@
 
 
 
+#' 
 #' Impute data using the MAGIC algorithm
 #' 
 #' This is an implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm described in 
@@ -44,7 +45,7 @@ magicBatch <- function(data,
                        rescale_percent = 90,
                        rescale_method = "adaptive",
                        python_command = system("which python3", intern = TRUE)) {
-  
+
   assertthat::assert_that(!(!is.null(select_features) & !is.null(mar_mat_input)))
   
   on.exit({print(paste("removing temporary files"))
@@ -155,6 +156,7 @@ magicBatch <- function(data,
               diffusion_map = diffusion_map))
 }
 
+#' 
 #' Impute data using the MAGIC algorithm
 #' 
 #' This is a helper function that imputes data using a pre-computed Marcov matrix. It minimizing the number of matrix multiplications needed to 
@@ -229,6 +231,7 @@ multi_t_fast_impute <- function(data, L, t_param) {
 }
 
 
+#' 
 #' Rescale Data
 #' 
 #' This function rescales imputed data using one of two methods. The "classic" method rescales the imputed data as in the original implementation.
