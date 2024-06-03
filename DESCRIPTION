@@ -1,12 +1,11 @@
 Package: magicBatch
 Type: Package
-Title: R wrapper for the original python implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm 
-Version: 1.0.2
+Title: An implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm optimized for cross-batch imputation
+Version: 1.0.3
 Authors@R: c(person("Kevin", "Brulois", role = c("aut", "cre"), 
         email = "kevin.brulois@gmail.com")) 
 Maintainer: Kevin Brulois <kevin.brulois@gmail.com>
-Description: R wrapper for the original python implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm. 
-	In addition to non-imputed gene expression values, this implementation includes an optional argument ("-a") that allows the user to 
+Description: Modified implementation of the MAGIC algorithm that allows the users to 
 	separately pass a batch-corrected low-dimensional representation of the data to be used for the calculation of the powered marcov 
 	affinity matrix. This allows MAGIC to work complementary to existing single-cell alignment/batch correction tools. Using MAGIC in 
 	this manner effectively maintains overlap of identical cell types from different batches while enhancing distinction of batch-specific 
