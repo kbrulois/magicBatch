@@ -1,0 +1,156 @@
+---
+title: "Batch-corrected imputation using magicBatch"
+author: "Kevin Brulois"
+output: html_document
+date: "2024-05-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Marcov Affinity-based Graph Imputation of Cells (MAGIC) is an algorithm described by [David Van Dijk, et al](https://www.cell.com/cell/fulltext/S0092-8674(18)30724-4) that denoises high-dimensional data by smoothing over the manifold of the data and restoring the overall structure of the data. It has been extensively applied to single-cell RNA sequencing data where noise and dropout are a common problem. 
+
+Current implementations of MAGIC are well-suited for per batch analyses, such as imputation of gene expression values. However, for  applications such as dimensional reduction of multi-batch datasets, there is a need for cross-batch imputation that is responsive to batch correction and other types of data correction methods (e.g. removal of cell cycle effects).
+
+magicBatch is a modified version of the MAGIC algorithm that allows independent specification of the data used to compute the diffusion operator and the data to be imputed. This enables any low-dimensional representation of the data, including batch-corrected data, to be directly used in the powered Marcov affinity matrix computation and subsequently applied to the original gene expression data.
+
+## Installation
+
+First install the magicBatch python package from within R by specifying the python_path using one of the following:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+
+python_path <- system("which python3", intern = TRUE) #or "path/to/venv/bin/python" or "/path/to/python3.x"
+system(paste(python_path, "-m pip install magicBatch"))
+```
+
+Next install the following R packages:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+devtools::install_github("kbrulois/magicBatch")
+devtools::install_github('hylasD/tSpace', build = TRUE, build_opts = c("--no-resave-data", "--no-manual"), force = T)
+
+library(magicBatch)
+library(tSpace)
+library(SingleCellExperiment)
+
+```
+
+## Load demo data
+
+We will use a single cell experiment object containing data from our [single cell survey of mouse lymph node endothelial cells](https://www.nature.com/articles/s41467-020-17291-5). Here we load the object and extract the color scheme:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+sce <- readRDS(url('https://stacks.stanford.edu/file/druid:cf352cg6610/PLN123_SCE.rds'))
+subset_colors <- setNames(colData(sce)[["color.scheme"]][1:11],
+                          colData(sce)[["color.scheme.key"]][1:11])
+```
+
+## Motivation: MAGIC imputation enhances tSpace
+
+First, we will illustrate the effect of MAGIC on the tSpace algorithm in the absence of batch effects. For this, we will use one of the three samples in the dataset and compute MAGIC using the classic implementation. For this, we use the magicBatch function with mar_mat_input = NULL (the default), which behaves identically to the original MAGIC algorithm. 
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+sce_PLN1 <- sce[,sce$sample == "PLN1"]
+
+lc_PLN1 <- as.matrix(t(logcounts(sce_PLN1)))
+
+MAGIC_PLN1 <- magicBatch(data = lc_PLN1, 
+                         t_param = 6, 
+                         python_command = python_path)
+```
+
+Next, we compute [tSpace](https://doi.org/10.1016/j.isci.2020.100842) using the imputed data (top 1000 variable genes) or a PCA of the non-imputed data for comparison. Results are visualized using the html_3dPlot function.
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+
+var_genes <- rowData(sce)[["var.genes"]]
+
+tsp_out <- lapply(list(`Without MAGIC` = prcomp(t(lc_PLN1[,var_genes]), rank. = 20)[["rotation"]],
+                       `With MAGIC` = MAGIC_PLN1[["imputed_data"]][["t6"]][,var_genes]), 
+                  \(x) tSpace::tSpace(df = as.data.frame(x), 
+                                      trajectories = 100, 
+                                      D = 'pearson_correlation', 
+                                      core_no = 10))
+  
+to_plot <- do.call(rbind, 
+                   lapply(names(tsp_out), 
+                          \(x) {
+                            cbind(tsp_out[[x]][["ts_file"]][,2:4],
+                                  data.frame(method = rep(x, nrow(tsp_out[[x]][["ts_file"]])),
+                                             subsets = colData(sce_PLN1)[,4]))
+                          }))
+
+html_3dPlot(coordinates = to_plot[,1:3],  
+            color = to_plot[,4:5], 
+            discrete_colors_custom = list(subsets = subset_colors),
+            wrap = "method",
+            include_all_var = FALSE,
+            selfcontained = TRUE)
+```
+
+<!--html_preserve-->
+
+ <iframe src="/Users/kbrulois/R_projects/magicBatch/plot1.html" frameborder="0" scrolling="no"
+                                 height="800" width="1200" > </iframe>  
+
+<!--html_preserve-->
+
+MAGIC prior to tSpace provides a clearer visual representation the developmental branching structure. 
+
+## magicBatch provides a way to apply batch-corrected imputation prior to tSpace
+
+Now we will return to the full dataset containing 3 samples (PLN1, PLN2 and PLN3) and demonstrate the use of magicBatch to perform batch-corrected imputation.
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+
+MAGIC_wo_correction <- magicBatch(data = as.matrix(t(logcounts(sce))), 
+                                  t_param = 6, 
+                                  python_command = python_path)
+
+MAGIC_w_correction <- magicBatch(data = as.matrix(t(logcounts(sce))), 
+                                 mar_mat_input = reducedDim(sce, "MNN_correction"),
+                                 t_param = 6, 
+                                 python_command = python_path)
+
+
+tsp_out <- lapply(list(`Without batch correction` = MAGIC_wo_correction[["imputed_data"]][["t6"]][,var_genes],
+                       `With batch correction` = MAGIC_w_correction[["imputed_data"]][["t6"]][,var_genes]), 
+                  \(x) tSpace::tSpace(df = as.data.frame(x), 
+                                      trajectories = 100, 
+                                      D = 'pearson_correlation', 
+                                      core_no = 10))
+
+to_plot2 <- do.call(rbind, 
+                   lapply(names(tsp_out), 
+                          \(x) {
+                            cbind(tsp_out[[x]][["ts_file"]][,2:4],
+                                  data.frame(method = rep(x, nrow(tsp_out[[x]][["ts_file"]]))),
+                                  as.data.frame(colData(sce)[,c(3,4,5)]))
+                          }))
+
+html_3dPlot(coordinates = to_plot2[,1:3],  
+            color = to_plot2[,4:7], 
+            discrete_colors_custom = list(subsets = subset_colors),
+            wrap = "method",
+            include_all_var = FALSE,
+            texts = NULL, 
+            selfcontained = TRUE)
+
+```
+
+<!--html_preserve-->
+
+ <iframe src="/Users/kbrulois/R_projects/magicBatch/plot2.html" frameborder="0" scrolling="no"
+                                 height="800" width="1200" > </iframe>  
+
+<!--html_preserve-->
+
+Without batch correction (original MAGIC), the 3 samples are poorly integrated, with PLN3 (the only sample derived from C57BL/6 mice) being the further separated compared to PLN1 and PLN2 (two BALB/c samples). magicBatch provides an effective way to apply batch corrected imputation.
+
+
+
+
