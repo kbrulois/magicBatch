@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="An implementation of the Marcov Affinity-based Graph Imputation of Cells (MAGIC) algorithm optimized for cross-batch imputation">
-<meta property="og:description" content="Modified implementation of the MAGIC algorithm that allows the users to 
+<meta property="og:description" content="magicBatch is a modified implementation of the MAGIC algorithm that allows the users to 
 	separately pass a batch-corrected low-dimensional representation of the data to be used for the calculation of the powered marcov 
 	affinity matrix. This allows MAGIC to work complementary to existing single-cell alignment/batch correction tools. Using MAGIC in 
 	this manner effectively maintains overlap of identical cell types from different batches while enhancing distinction of batch-specific 
@@ -71,7 +71,7 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-Modified implementation of the MAGIC algorithm that allows the users to 
+magicBatch is a modified implementation of the MAGIC algorithm that allows the users to 
 	separately pass a batch-corrected low-dimensional representation of the data to be used for the calculation of the powered marcov 
 	affinity matrix. This allows MAGIC to work complementary to existing single-cell alignment/batch correction tools. Using MAGIC in 
 	this manner effectively maintains overlap of identical cell types from different batches while enhancing distinction of batch-specific 
