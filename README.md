@@ -1,8 +1,6 @@
-magicBatch
-
 ## Overview
 
-This is a modified version of the MAGIC algorithm that allows for batch-corrected imputation of multi-batch datasets.
+magicBatch is a modified version of the MAGIC algorithm that allows for batch-corrected imputation of multi-batch datasets.
 
 ## Installation
 
