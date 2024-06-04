@@ -6,36 +6,36 @@ This is a modified version of the MAGIC algorithm that allows for batch-correcte
 
 ## Installation
 
-1) install the magicBatch python package using one of two methods. 
+1) install the magicBatch python package using one of two methods: 
 
 	From within R (preferred):
 
-	```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+	```
 	python_path <- system("which python3", intern = TRUE)
 	system(paste(python_path, "-m pip install magicBatch"))
 	```
 
 	From the command line:
 
-	```{}
+	```
 	pip install magicBatch
 	```
 	And copy the output of
 
-	```{}
+	```
 	which python
 	```
 	as this will be needed to invoke the correct python runtime from within R.
 
 2) install the magicBatch R package:
 
-	```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+	```
 	devtools::install_github("kbrulois/magicBatch")
 	```
 
 ## Usage
 
-```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+```
 python_path <- system("which python3", intern = TRUE) 
 #python_path <- "path/to/venv/bin/python"
 #python_path <- "/path/to/python3.x"
