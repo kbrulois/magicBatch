@@ -32,13 +32,14 @@ This is a modified version of the MAGIC algorithm that allows for batch-correcte
 	```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
 	devtools::install_github("kbrulois/magicBatch")
 	```
-	
-##Usage
+
+## Usage
 
 ```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
 python_path <- system("which python3", intern = TRUE) 
 #python_path <- "path/to/venv/bin/python"
 #python_path <- "/path/to/python3.x"
+
 sce <- readRDS(url('https://stacks.stanford.edu/file/druid:cf352cg6610/PLN123_SCE.rds'))
 
 MAGIC_w_correction <- magicBatch(data = as.matrix(t(logcounts(sce))), 
