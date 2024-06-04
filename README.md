@@ -1,4 +1,4 @@
-Batch-corrected Imputation================
+magicBatch
 
 ## Overview
 
@@ -6,19 +6,45 @@ This is a modified version of the MAGIC algorithm that allows for batch-correcte
 
 ## Installation
 
-First install the magicBatch python package from within R by specifying the python_path using one of the following:
+1) install the magicBatch python package using one of two methods. 
+
+	From within R (preferred):
+
+	```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+	python_path <- system("which python3", intern = TRUE)
+	system(paste(python_path, "-m pip install magicBatch"))
+	```
+
+	From the command line:
+
+	```{}
+	pip install magicBatch
+	```
+	And copy the output of
+
+	```{}
+	which python
+	```
+	as this will be needed to invoke the correct python runtime from within R.
+
+2) install the magicBatch R package:
+
+	```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+	devtools::install_github("kbrulois/magicBatch")
+	```
+	
+##Usage
 
 ```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
+python_path <- system("which python3", intern = TRUE) 
+#python_path <- "path/to/venv/bin/python"
+#python_path <- "/path/to/python3.x"
+sce <- readRDS(url('https://stacks.stanford.edu/file/druid:cf352cg6610/PLN123_SCE.rds'))
 
-python_path <- system("which python3", intern = TRUE) #or "path/to/venv/bin/python" or "/path/to/python3.x"
-system(paste(python_path, "-m pip install magicBatch"))
-```
-
-Next install the magicBatch R package:
-
-```{r, eval=FALSE, message=FALSE, warning=FALSE, results = 'hide'}
-devtools::install_github("kbrulois/magicBatch")
-
+MAGIC_w_correction <- magicBatch(data = as.matrix(t(logcounts(sce))), 
+                                 mar_mat_input = reducedDim(sce, "MNN_correction"),
+                                 t_param = 6, 
+                                 python_command = python_path)
 ```
 
 ## Tutorial
